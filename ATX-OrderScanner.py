@@ -44,7 +44,7 @@ class OrderScanner:
         AlgoParam, Character, 255, N, 策略参数
         """
         start_time = datetime.now()
-        stop_time = start_time + timedelta(minutes=10)
+        stop_time = start_time + timedelta(minutes=60)
 
         order_list = [
             {
@@ -150,11 +150,11 @@ if __name__ == "__main__":
     obj = OrderScanner(moniterDir=r"D:\SWAP\ATX\OrderScan")
 
     # dict_list=OrderScanner.readCSV("sell.csv")
-    dict_list=OrderScanner.readCSV("buy.csv")
+    dict_list=OrderScanner.readCSV("input/buy.csv")
     for dict_data in dict_list:
         secucode=dict_data['SECUCODE']
         vol=eval(dict_data['volume'])
-        obj.order(1, 'shanghaitest1', secucode, 1, vol)
+        obj.order(1, '私募基金A', secucode, 1, vol)
 
     # obj.order(
     #     batchSize=10,
