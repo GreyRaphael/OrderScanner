@@ -8,9 +8,6 @@ class OrderScanner:
     def __init__(self, moniterDir):
         self._moniterDir = moniterDir
         self._runDate = time.strftime("%Y%m%d")
-        self._orderList = []
-        self._cancelList = []
-        self._pendingList = []
 
     def _writeDBF(self, file_name, record_list):
         table = dbf.Table(
@@ -22,44 +19,15 @@ class OrderScanner:
             table.append(record)
         table.close()
 
-    def _readDBF(self, flag):
-        if flag == "order":
-            table = dbf.Table(
-                filename=f"{self._moniterDir}\\ReportOrderAlgo_{self._runDate}.dbf",
-                codepage="utf8",
-            )
-            table.open(mode=dbf.READ_ONLY)
-            self._pendingList = [record for record in table]
-
-        elif flag == "asset":
-            table = dbf.Table(
-                filename=f"{self._moniterDir}\\ReportBalance_{self._runDate}.dbf",
-                codepage="utf8",
-            )
-            table.open(mode=dbf.READ_ONLY)
-            for record in table:
-                clientName = record.CLIENTNAME.strip()
-                availableBalence = record.ENBALANCE
-                print(clientName, availableBalence)
-        elif flag == "hold":
-            table = dbf.Table(
-                filename=f"{self._moniterDir}\\ReportPosition_{self._runDate}.dbf",
-                codepage="utf8",
-            )
-            table.open(mode=dbf.READ_ONLY)
-            hold_list = [
-                {
-                    "ClientName": record.CLIENTNAME.strip(),
-                    "SECUCODE": record.SYMBOL.strip(),
-                    "CurrentVolume": record.CURRENTQ,
-                    "AvailableVolume": record.ENABLEQTY,
-                }
-                for record in table
-            ]
-            hold_list.sort(key=lambda x: (x["ClientName"], x["SECUCODE"]))
-            OrderScanner.writeCSV("hold.csv", hold_list)
-
+    def _readDBF(self, file_name):
+        table = dbf.Table(
+            filename=file_name,
+            codepage="utf8",
+        )
+        table.open(mode=dbf.READ_ONLY)
+        record_list = [record for record in table]
         table.close()
+        return record_list
 
     def order(self, batchSize, clientName, code, direction, volume, ordType=101):
         """
@@ -117,30 +85,48 @@ class OrderScanner:
         self._writeDBF(file_name, cancel_list)
 
     def queryOrder(self):
-        self._readDBF(flag="order")
+        filename = f"{self._moniterDir}\\ReportOrderAlgo_{self._runDate}.dbf"
+        record_list = self._readDBF(filename)
+        print(f"query {len(record_list)} orders")
+        return record_list
 
     def queryAsset(self):
-        self._readDBF(flag="asset")
+        filename = f"{self._moniterDir}\\ReportBalance_{self._runDate}.dbf"
+        record_list = self._readDBF(filename)
+        for record in record_list:
+            client_name = record.CLIENTNAME.strip()
+            available_balence = record.ENBALANCE
+            print(f"ClientName={client_name}, AvailableBalence={available_balence}")
 
     def queryHold(self):
-        self._readDBF(flag="hold")
+        filename = f"{self._moniterDir}\\ReportPosition_{self._runDate}.dbf"
+        record_list = self._readDBF(filename)
 
-    def auto_cancel(self, delay=3):
+        hold_list = [
+            {
+                "ClientName": record.CLIENTNAME.strip(),
+                "SECUCODE": record.SYMBOL.strip(),
+                "CurrentVolume": record.CURRENTQ,
+                "AvailableVolume": record.ENABLEQTY,
+            }
+            for record in record_list
+        ]
+        hold_list.sort(key=lambda x: (x["ClientName"], x["SECUCODE"]))
+        OrderScanner.writeCSV("hold.csv", hold_list)
+
+    def autoCancel(self, delay=3):
         time.sleep(delay)
-        self.queryOrder()
+        record_list = self.queryOrder()
         # 只有状态为已报(0),部成(1)的委托才能撤单
         quoteId_list = [
             record.QuoteId
-            for record in self._pendingList
+            for record in record_list
             if (record.OrdStatus == 0 or record.OrdStatus == 1)
         ]
-        # 清空队列
-        self._pendingList = []
         # print(quoteId_list)
         if quoteId_list:
-            # 撤单
             self.cancel(quoteId_list)
-            print(f"撤单:{len(quoteId_list)}条")
+            print(f"cancel:{len(quoteId_list)} orders")
 
     @staticmethod
     def readCSV(filename):
@@ -159,44 +145,26 @@ class OrderScanner:
             csv_writer.writeheader()
             csv_writer.writerows(data_list)
 
-    def batchOrders(self, secucode_list, clientName, direction, volume):
-        for secucode in secucode_list:
-            self.order(1, clientName, secucode, direction, volume)
-            # print(f"sending code={secucode}, direction={direction}, vol={volume}")
-
 
 if __name__ == "__main__":
     obj = OrderScanner(moniterDir=r"D:\SWAP\ATX\OrderScan")
-    clientNames = [
-        "shanghaitest1",
-        # "shanghaitest2",
-    ]
-    secucodes = [
-        "000001.SZ",
-        "300513.SZ",
-        "600019.SH",
-        "688036.SH",
-    ]
 
-    # data_list=OrderScanner.readCSV("sell.csv")
-    # data_list=OrderScanner.readCSV("buy.csv")
-    # for record in data_list:
-    #     secucode=record['SECUCODE']
-    #     vol=eval(record['volume'])
-    #     obj.order(1, 'shanghaitest1', secucode, 1, vol)
+    # dict_list=OrderScanner.readCSV("sell.csv")
+    dict_list=OrderScanner.readCSV("buy.csv")
+    for dict_data in dict_list:
+        secucode=dict_data['SECUCODE']
+        vol=eval(dict_data['volume'])
+        obj.order(1, 'shanghaitest1', secucode, 1, vol)
 
-    # for name in clientNames:
-    #     obj.batchOrders(secucodes, name, direction=1, volume=1000)
-
-    # obj.batchOrders(secucodes, 1, 200)
     # obj.order(
     #     batchSize=10,
     #     code="000016.SZ",
     #     direction=1,
     #     volume=100,
     # )
+    # obj.autoCancel(delay=10)
 
+    # # query Asset, Hold, Order
     # obj.queryAsset()
-    obj.queryHold()
+    # obj.queryHold()
     # obj.queryOrder()
-    # obj.auto_cancel()
