@@ -12,32 +12,20 @@ class OrderScanner:
         self._cancelList = []
         self._pendingList = []
 
-    def _writeDBF(self, flag):
-        if flag == "order":
-            table = dbf.Table(
-                filename=f"{self._moniterDir}\\OrderAlgo_{self._runDate}.dbf",
-                # codepage="cp936",
-                codepage="utf8",
-            )
-            table.open(mode=dbf.READ_WRITE)
-            for _order in self._orderList:
-                table.append(_order)
-        elif flag == "cancel":
-            table = dbf.Table(
-                filename=f"{self._moniterDir}\\CancelOrderAlgo_{self._runDate}.dbf",
-                # codepage="cp936",
-                codepage="utf8",
-            )
-            table.open(mode=dbf.READ_WRITE)
-            for _cancel in self._cancelList:
-                table.append(_cancel)
+    def _writeDBF(self, file_name, record_list):
+        table = dbf.Table(
+            filename=file_name,
+            codepage="utf8",
+        )
+        table.open(mode=dbf.READ_WRITE)
+        for record in record_list:
+            table.append(record)
         table.close()
 
     def _readDBF(self, flag):
         if flag == "order":
             table = dbf.Table(
                 filename=f"{self._moniterDir}\\ReportOrderAlgo_{self._runDate}.dbf",
-                # codepage="cp936",
                 codepage="utf8",
             )
             table.open(mode=dbf.READ_ONLY)
@@ -46,7 +34,6 @@ class OrderScanner:
         elif flag == "asset":
             table = dbf.Table(
                 filename=f"{self._moniterDir}\\ReportBalance_{self._runDate}.dbf",
-                # codepage="cp936",
                 codepage="utf8",
             )
             table.open(mode=dbf.READ_ONLY)
@@ -57,7 +44,6 @@ class OrderScanner:
         elif flag == "hold":
             table = dbf.Table(
                 filename=f"{self._moniterDir}\\ReportPosition_{self._runDate}.dbf",
-                # codepage="cp936",
                 codepage="utf8",
             )
             table.open(mode=dbf.READ_ONLY)
@@ -70,12 +56,12 @@ class OrderScanner:
                 }
                 for record in table
             ]
-            hold_list.sort(key=lambda x: (x['ClientName'],x['SECUCODE']))
-            OrderScanner.writeCSV('hold.csv', hold_list)
+            hold_list.sort(key=lambda x: (x["ClientName"], x["SECUCODE"]))
+            OrderScanner.writeCSV("hold.csv", hold_list)
 
         table.close()
 
-    def order(self, orderNumber, clientName, code, direction, volume, ordType=101):
+    def order(self, batchSize, clientName, code, direction, volume, ordType=101):
         """
         ExternalId, Character, 30, N, 自定义委托编号
         ClientName, Character, 255, Y, 账户名称
@@ -92,40 +78,43 @@ class OrderScanner:
         start_time = datetime.now()
         stop_time = start_time + timedelta(minutes=10)
 
-        self._orderList = []
+        order_list = [
+            {
+                "ClientName": clientName,
+                "Symbol": code,
+                "Side": direction,
+                "OrderQty": volume,
+                "OrdType": ordType,
+                "EffTime": start_time.strftime("%Y%m%d%H%M%S000"),
+                # "EffTime": '20221110100000000',
+                "ExpTime": stop_time.strftime("%Y%m%d%H%M%S000"),
+                # "ExpTime": '20221110145700000',
+                "LimAction": 0,
+                "AftAction": 1,
+                # "AlgoParam":'price=9.9'
+            }
+            for i in range(batchSize)
+        ]
 
-        for i in range(orderNumber):
-            self._orderList.append(
-                {
-                    "ClientName": clientName,
-                    # "ClientName": '私募基金A'.encode('utf8').decode('gbk'),
-                    "Symbol": code,
-                    "Side": direction,
-                    "OrderQty": volume,
-                    "OrdType": ordType,
-                    "EffTime": start_time.strftime("%Y%m%d%H%M%S000"),
-                    # "EffTime": '20221110100000000',
-                    "ExpTime": stop_time.strftime("%Y%m%d%H%M%S000"),
-                    # "ExpTime": '20221110145700000',
-                    "LimAction": 0,
-                    "AftAction": 1,
-                    # "AlgoParam":'price=9.9'
-                }
-            )
-        print(f"sending code={code}, direction={direction}, vol={volume}")
-        self._writeDBF(flag="order")
+        print(
+            f"sending code={code}, direction={direction}, vol={volume}, batch Size={batchSize}"
+        )
+        file_name = f"{self._moniterDir}\\OrderAlgo_{self._runDate}.dbf"
+        self._writeDBF(file_name, order_list)
 
     def cancel(self, quote_list):
-        self._cancelList = []
-        for quoteId in quote_list:
-            print(f"cancel {quoteId}")
-            self._cancelList.append(
+        cancel_list = []
+        for quote_id in quote_list:
+            print(f"cancel QuoteId={quote_id}")
+            cancel_list.append(
                 {
-                    "QuoteId": quoteId,
+                    "QuoteId": quote_id,
                     "CxlType": 1,
                 }
             )
-        self._writeDBF(flag="cancel")
+
+        file_name = f"{self._moniterDir}\\CancelOrderAlgo_{self._runDate}.dbf"
+        self._writeDBF(file_name, cancel_list)
 
     def queryOrder(self):
         self._readDBF(flag="order")
@@ -201,12 +190,12 @@ if __name__ == "__main__":
 
     # obj.batchOrders(secucodes, 1, 200)
     # obj.order(
-    #     orderNumber=10,
+    #     batchSize=10,
     #     code="000016.SZ",
     #     direction=1,
     #     volume=100,
     # )
-    
+
     # obj.queryAsset()
     obj.queryHold()
     # obj.queryOrder()
