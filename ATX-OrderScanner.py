@@ -112,7 +112,7 @@ class OrderScanner:
             for record in record_list
         ]
         hold_list.sort(key=lambda x: (x["ClientName"], x["SECUCODE"]))
-        OrderScanner.writeCSV("hold.csv", hold_list)
+        OrderScanner.writeCSV("output/hold.csv", hold_list)
 
     def autoCancel(self, delay=3):
         time.sleep(delay)
