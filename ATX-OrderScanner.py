@@ -150,18 +150,14 @@ if __name__ == "__main__":
     obj = OrderScanner(moniterDir=r"D:\SWAP\ATX\OrderScan")
 
     # dict_list=OrderScanner.readCSV("sell.csv")
-    dict_list=OrderScanner.readCSV("input/buy.csv")
+    dict_list = OrderScanner.readCSV("input/buy.csv")
     for dict_data in dict_list:
-        secucode=dict_data['SECUCODE']
-        vol=eval(dict_data['volume'])
-        obj.order(1, '私募基金A', secucode, 1, vol)
+        secucode = dict_data["SECUCODE"]
+        vol = eval(dict_data["volume"])
+        obj.order(
+            batchSize=1, clientName="私募基金A", code=secucode, direction=1, volume=vol
+        )
 
-    # obj.order(
-    #     batchSize=10,
-    #     code="000016.SZ",
-    #     direction=1,
-    #     volume=100,
-    # )
     # obj.autoCancel(delay=10)
 
     # # query Asset, Hold, Order
