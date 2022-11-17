@@ -98,6 +98,16 @@ class OrderScanner:
             available_balence = record.ENBALANCE
             print(f"ClientName={client_name}, AvailableBalence={available_balence}")
 
+    def filterHold(self, hold_dict):
+        secucode = hold_dict["SECUCODE"]
+        available_vol = hold_dict["AvailableVolume"]
+        if secucode.startswith("688") and 0 < available_vol < 200:
+            return True
+        elif 0 < available_vol < 100:
+            return True
+        else:
+            return False
+
     def queryHold(self):
         filename = f"{self._moniterDir}\\ReportPosition_{self._runDate}.dbf"
         record_list = self._readDBF(filename)
@@ -111,6 +121,7 @@ class OrderScanner:
             }
             for record in record_list
         ]
+        # hold_list=filter(self.filterHold, hold_list) # 筛选零股
         hold_list.sort(key=lambda x: (x["ClientName"], x["SECUCODE"]))
         OrderScanner.writeCSV("output/hold.csv", hold_list)
 
