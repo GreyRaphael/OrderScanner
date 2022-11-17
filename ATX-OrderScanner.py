@@ -137,7 +137,7 @@ class OrderScanner:
     @staticmethod
     def writeCSV(filename, data_list):
         if len(data_list) == 0:
-            print("price list is empty!")
+            print("data list is empty!")
             return
         colNames = data_list[0].keys()
         with open(filename, "w", encoding="utf8", newline="") as file:
