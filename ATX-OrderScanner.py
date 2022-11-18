@@ -154,7 +154,7 @@ class OrderScanner:
 if __name__ == "__main__":
     obj = OrderScanner(moniterDir=r"D:\SWAP\ATX\OrderScan")
 
-    # dict_list=OrderScanner.readCSV("sell.csv")
+    # dict_list=OrderScanner.readCSV("input/sell.csv")
     dict_list = OrderScanner.readCSV("input/buy.csv")
     for dict_data in dict_list:
         secucode = dict_data["SECUCODE"]
