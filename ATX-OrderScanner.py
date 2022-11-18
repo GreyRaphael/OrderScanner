@@ -10,20 +10,14 @@ class OrderScanner:
         self._runDate = time.strftime("%Y%m%d")
 
     def _writeDBF(self, file_name, record_list):
-        table = dbf.Table(
-            filename=file_name,
-            codepage="utf8",
-        )
+        table = dbf.Table(filename=file_name, codepage="utf8")
         table.open(mode=dbf.READ_WRITE)
         for record in record_list:
             table.append(record)
         table.close()
 
     def _readDBF(self, file_name):
-        table = dbf.Table(
-            filename=file_name,
-            codepage="utf8",
-        )
+        table = dbf.Table(filename=file_name, codepage="utf8")
         table.open(mode=dbf.READ_ONLY)
         record_list = [record for record in table]
         table.close()
