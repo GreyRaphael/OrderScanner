@@ -135,7 +135,7 @@ class i2OrderScanner:
         wtxh_list = [
             record.WTXH
             for record in record_list
-            if (record.WTZT == "4" or record.WTZT == "6") # 只有状态为已报(4),部成(6)的委托才能撤单
+            if (record.WTZT == "4" or record.WTZT == "6")  # 只有状态为已报(4),部成(6)的委托才能撤单
         ]
         if wtxh_list:
             self.cancel(wtxh_list)
@@ -167,7 +167,7 @@ class i2OrderScanner:
                 "WTJGLX": priceType,
                 "WTJG": price,
                 "WTSL": volume,
-                "WBZDYXH": self._lastCount + i, # 自定义编号
+                "WBZDYXH": self._lastCount + i,  # 自定义编号
             }
             for i in range(batchSize)
         ]
@@ -194,10 +194,10 @@ if __name__ == "__main__":
     info = ("00010009", "0001", "0001")
     for dict_data in dict_list:
         code = dict_data["SECUCODE"][:-3]
-        direction=dict_data['direction']
+        direction = dict_data["direction"]
         vol = eval(dict_data["volume"])
         p = eval(dict_data["f2"])
-        pType=dict_data['priceType']
+        pType = dict_data["priceType"]
         obj.order(
             batchSize=1,
             productInfo=info,
