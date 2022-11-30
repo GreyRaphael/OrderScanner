@@ -197,13 +197,13 @@ if __name__ == "__main__":
         direction = dict_data["direction"]
         vol = eval(dict_data["volume"])
         p = eval(dict_data["f2"])
-        pType = dict_data["priceType"]
+        # pType = dict_data["priceType"]
         obj.order(
             batchSize=1,
             productInfo=info,
             code=code,
             direction=direction,  # '1'买入;'2'卖出
-            priceType=pType,  # 0 限价
+            priceType=0,  # 0 限价
             price=p,
             volume=vol,
         )
