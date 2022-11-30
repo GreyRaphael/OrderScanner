@@ -161,7 +161,7 @@ if __name__ == "__main__":
         vol = eval(dict_data["volume"])
         obj.order(
             batchSize=1,
-            clientName="私募基金A",
+            clientName="test1",
             code=secucode,
             direction=direction,  # 1 买入;2 卖出
             volume=vol,
