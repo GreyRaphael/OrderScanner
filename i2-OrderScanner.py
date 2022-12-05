@@ -1,6 +1,7 @@
 import os.path
 import time
 import csv
+import sys
 import dbf
 
 
@@ -182,6 +183,10 @@ class i2OrderScanner:
 if __name__ == "__main__":
     obj = i2OrderScanner(moniterDir=r"D:\MyWork\MaidanDir")
 
+    opfile = "input/opfile-buy.csv"
+    if len(sys.argv) > 1:
+        opfile = sys.argv[1]
+
     # # query Order, Trade
     # obj.queryOrder()
     # obj.queryTrade()
@@ -190,7 +195,7 @@ if __name__ == "__main__":
     # obj.autoCancel(3)
 
     # order
-    dict_list = i2OrderScanner.readCSV("input/opfile.csv")
+    dict_list = i2OrderScanner.readCSV(opfile)
     info = ("00010009", "0001", "0001")
     for dict_data in dict_list:
         code = dict_data["SECUCODE"][:-3]
