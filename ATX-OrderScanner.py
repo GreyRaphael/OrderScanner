@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 import time
 import csv
+import sys
 import dbf
 
 
@@ -23,14 +24,14 @@ class OrderScanner:
         table.close()
         return record_list
 
-    def order(self, batchSize, clientName, code, direction, volume, ordType=101):
+    def order(self, batchSize, clientName, code, direction, volume, ordType=103):
         """
         ExternalId, Character, 30, N, 自定义委托编号
         ClientName, Character, 255, Y, 账户名称
         Symbol, Character, 40, Y, 证券代码
         Side, Number, 3, Y, 买卖方向: Buy 1;Sell 2
         OrderQty, Number, 10, Y, 委托数量
-        OrdType, Number, 3, Y, 算法类型
+        OrdType, Number, 3, Y, 算法类型: 101, twap_plus; 102, vwap_plus; 103, twap_core
         EffTime, Character, 17, Y, 开始时间
         ExpTime, Character, 17, Y, 结束时间
         LimAction, Number, 1, Y, 0-涨跌停后不交易;1-涨跌停后仍交易
@@ -38,7 +39,7 @@ class OrderScanner:
         AlgoParam, Character, 255, N, 策略参数
         """
         start_time = datetime.now()
-        stop_time = start_time + timedelta(minutes=60)
+        stop_time = start_time + timedelta(minutes=10)
 
         order_list = [
             {
@@ -154,7 +155,11 @@ class OrderScanner:
 if __name__ == "__main__":
     obj = OrderScanner(moniterDir=r"D:\SWAP\ATX\OrderScan")
 
-    dict_list = OrderScanner.readCSV("input/opfile.csv")
+    opfile = "input/opfile-buy.csv"
+    if len(sys.argv) > 1:
+        opfile = sys.argv[1]
+
+    dict_list = OrderScanner.readCSV(opfile)
     for dict_data in dict_list:
         secucode = dict_data["SECUCODE"]
         direction=int(dict_data['direction'])
