@@ -24,7 +24,7 @@ class OrderScanner:
         table.close()
         return record_list
 
-    def order(self, batchSize, clientName, code, direction, volume, ordType=103):
+    def order(self, batchSize, clientName, code, direction, volume, **kwargs):
         """
         ExternalId, Character, 30, N, 自定义委托编号
         ClientName, Character, 255, Y, 账户名称
@@ -41,26 +41,49 @@ class OrderScanner:
         start_time = datetime.now()
         stop_time = start_time + timedelta(minutes=10)
 
-        order_list = [
-            {
-                "ClientName": clientName,
-                "Symbol": code,
-                "Side": direction,
-                "OrderQty": volume,
-                "OrdType": ordType,
-                "EffTime": start_time.strftime("%Y%m%d%H%M%S000"),
-                # "EffTime": '20221110100000000',
-                "ExpTime": stop_time.strftime("%Y%m%d%H%M%S000"),
-                # "ExpTime": '20221110145700000',
-                "LimAction": 0,
-                "AftAction": 1,
-                # "AlgoParam":'price=9.9'
-            }
-            for i in range(batchSize)
-        ]
+        ordType = kwargs.get("ordType")
+
+        if ordType == 201:
+            # 卡方直连单
+            p = kwargs.get("price")
+            order_list = [
+                {
+                    "ClientName": clientName,
+                    "Symbol": code,
+                    "Side": direction,
+                    "OrderQty": volume,
+                    "OrdType": ordType,
+                    "EffTime": start_time.strftime("%Y%m%d%H%M%S000"),
+                    # "EffTime": '20221110100000000',
+                    "ExpTime": stop_time.strftime("%Y%m%d%H%M%S000"),
+                    # "ExpTime": '20221110145700000',
+                    "LimAction": 0,
+                    "AftAction": 1,
+                    "AlgoParam": f"PriceTypeI=0:priceF={p}",
+                }
+                for i in range(batchSize)
+            ]
+        else:
+            # 卡方TWAP智能算法, 卡方VWAP智能算法
+            order_list = [
+                {
+                    "ClientName": clientName,
+                    "Symbol": code,
+                    "Side": direction,
+                    "OrderQty": volume,
+                    "OrdType": ordType,
+                    "EffTime": start_time.strftime("%Y%m%d%H%M%S000"),
+                    # "EffTime": '20221110100000000',
+                    "ExpTime": stop_time.strftime("%Y%m%d%H%M%S000"),
+                    # "ExpTime": '20221110145700000',
+                    "LimAction": 0,
+                    "AftAction": 1,
+                }
+                for i in range(batchSize)
+            ]
 
         print(
-            f"sending code={code}, direction={direction}, vol={volume}, batch Size={batchSize}"
+            f"sending code={code}, side={direction}, vol={volume}, BatchSize={batchSize}"
         )
         file_name = f"{self._moniterDir}\\OrderAlgo_{self._runDate}.dbf"
         self._writeDBF(file_name, order_list)
@@ -156,20 +179,26 @@ if __name__ == "__main__":
     obj = OrderScanner(moniterDir=r"D:\SWAP\ATX\OrderScan")
 
     opfile = "input/opfile-buy.csv"
-    if len(sys.argv) > 1:
+    if len(sys.argv) == 2:
         opfile = sys.argv[1]
+    elif len(sys.argv) == 3:
+        opfile = sys.argv[1]
+        ordType = int(sys.argv[2])
 
     dict_list = OrderScanner.readCSV(opfile)
     for dict_data in dict_list:
         secucode = dict_data["SECUCODE"]
-        direction=int(dict_data['direction'])
+        direction = int(dict_data["direction"])
         vol = eval(dict_data["volume"])
+        p = eval(dict_data["f2"])
         obj.order(
             batchSize=1,
-            clientName="test1",
+            clientName="test2",
             code=secucode,
             direction=direction,  # 1 买入;2 卖出
             volume=vol,
+            ordType=201,  # 201: 直连; 101: kf_twap_plus; 103: kf_vwap_plus
+            price=p,
         )
 
     # obj.autoCancel(delay=10)
