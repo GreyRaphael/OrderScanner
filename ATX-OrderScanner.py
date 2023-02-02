@@ -177,7 +177,8 @@ class OrderScanner:
 
 if __name__ == "__main__":
     obj = OrderScanner(moniterDir=r"D:\SWAP\ATX\OrderScan")
-
+    
+    # opfile 通过 https://github.com/GreyRaphael/StockPriceCrawler 获取
     opfile = "input/opfile-buy.csv"
     if len(sys.argv) == 2:
         opfile = sys.argv[1]
