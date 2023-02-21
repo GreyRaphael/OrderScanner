@@ -177,9 +177,10 @@ class OrderScanner:
 
 if __name__ == "__main__":
     obj = OrderScanner(moniterDir=r"D:\SWAP\ATX\OrderScan")
-    
+
     # opfile 通过 https://github.com/GreyRaphael/StockPriceCrawler 获取
     opfile = "input/opfile-buy.csv"
+    ordType = 201
     if len(sys.argv) == 2:
         opfile = sys.argv[1]
     elif len(sys.argv) == 3:
@@ -194,15 +195,15 @@ if __name__ == "__main__":
         p = eval(dict_data["f2"])
         obj.order(
             batchSize=1,
-            clientName="test2",
+            clientName="test1",
             code=secucode,
             direction=direction,  # 1 买入;2 卖出
             volume=vol,
-            ordType=201,  # 201: 直连; 101: kf_twap_plus; 103: kf_vwap_plus
+            ordType=ordType,  # 201: 直连; 101: kf_twap_plus; 103: kf_vwap_plus
             price=p,
         )
 
-    # obj.autoCancel(delay=10)
+    obj.autoCancel(delay=10)
 
     # # query Asset, Hold, Order
     # obj.queryAsset()
