@@ -1,8 +1,8 @@
 from datetime import datetime, timedelta
 import time
 import csv
-import sys
 import dbf
+import argparse
 
 
 class OrderScanner:
@@ -82,9 +82,7 @@ class OrderScanner:
                 for i in range(batchSize)
             ]
 
-        print(
-            f"sending code={code}, side={direction}, vol={volume}, BatchSize={batchSize}"
-        )
+        print(f"sending code={code}, side={direction}, vol={volume}, BatchSize={batchSize}")
         file_name = f"{self._moniterDir}\\OrderAlgo_{self._runDate}.dbf"
         self._writeDBF(file_name, order_list)
 
@@ -147,11 +145,7 @@ class OrderScanner:
         time.sleep(delay)
         record_list = self.queryOrder()
         # 只有状态为已报(0),部成(1)的委托才能撤单
-        quoteId_list = [
-            record.QuoteId
-            for record in record_list
-            if (record.OrdStatus == 0 or record.OrdStatus == 1)
-        ]
+        quoteId_list = [record.QuoteId for record in record_list if (record.OrdStatus == 0 or record.OrdStatus == 1)]
         # print(quoteId_list)
         if quoteId_list:
             self.cancel(quoteId_list)
@@ -176,34 +170,35 @@ class OrderScanner:
 
 
 if __name__ == "__main__":
-    obj = OrderScanner(moniterDir=r"D:\ATX\OrderScan")
+    parser = argparse.ArgumentParser(description="ATX OrderScanner")
+    parser.add_argument("--mondir", default=r"D:\ATX\OrderScan", type=str, help="ATX moniter dir")
+    parser.add_argument("--opfile", default="input/opfile-buy.csv", type=str, help="operation file")
+    parser.add_argument("--ordtype", default=201, type=int, help="order type: 201, direct; 101, kf_twap_plus; 103, kf_vwap_plus")
+    parser.add_argument("--client", default="test1", type=str, help="client name")
+    parser.add_argument("--delay", default=300, type=int, help="auto cancel delay seconds")
+    parser.add_argument("--batch", default=1, type=int, help="batch size")
+    args = parser.parse_args()
+
+    obj = OrderScanner(moniterDir=args.mondir)
 
     # opfile 通过 https://github.com/GreyRaphael/StockPriceCrawler 获取
-    opfile = "input/opfile-buy.csv"
-    ordType = 201
-    if len(sys.argv) == 2:
-        opfile = sys.argv[1]
-    elif len(sys.argv) == 3:
-        opfile = sys.argv[1]
-        ordType = int(sys.argv[2])
-
-    dict_list = OrderScanner.readCSV(opfile)
+    dict_list = OrderScanner.readCSV(args.opfile)
     for dict_data in dict_list:
         secucode = dict_data["SECUCODE"]
         direction = int(dict_data["direction"])
         vol = eval(dict_data["volume"])
         p = eval(dict_data["f2"])
         obj.order(
-            batchSize=1,
-            clientName="test1",
+            batchSize=args.batch,
+            clientName=args.client,
             code=secucode,
             direction=direction,  # 1 买入;2 卖出
             volume=vol,
-            ordType=ordType,  # 201: 直连; 101: kf_twap_plus; 103: kf_vwap_plus
+            ordType=args.ordtype,  # 201: 直连; 101: kf_twap_plus; 103: kf_vwap_plus
             price=p,
         )
 
-    obj.autoCancel(delay=10)
+    obj.autoCancel(delay=args.delay)
 
     # # query Asset, Hold, Order
     # obj.queryAsset()
