@@ -172,6 +172,7 @@ class OrderScanner:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="ATX OrderScanner")
     parser.add_argument("--mondir", default=r"D:\ATX\OrderScan", type=str, help="ATX moniter dir")
+    parser.add_argument("--side", default=1, type=int, help="direction: 1 buy, 2 sell")
     parser.add_argument("--opfile", default="input/opfile-buy.csv", type=str, help="operation file")
     parser.add_argument("--ordtype", default=201, type=int, help="order type: 201, direct; 101, kf_twap_plus; 103, kf_vwap_plus")
     parser.add_argument("--client", default="test1", type=str, help="client name")
@@ -185,7 +186,7 @@ if __name__ == "__main__":
     dict_list = OrderScanner.readCSV(args.opfile)
     for dict_data in dict_list:
         secucode = dict_data["SECUCODE"]
-        direction = int(dict_data["direction"])
+        direction = args.side
         vol = eval(dict_data["volume"])
         p = eval(dict_data["f2"])
         obj.order(
