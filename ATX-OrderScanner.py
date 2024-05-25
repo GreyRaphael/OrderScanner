@@ -176,7 +176,7 @@ if __name__ == "__main__":
     parser.add_argument("--opfile", default="input/opfile-buy.csv", type=str, help="operation file")
     parser.add_argument("--ordtype", default=201, type=int, help="order type: 201, direct; 101, kf_twap_plus; 103, kf_vwap_plus")
     parser.add_argument("--client", default="test1", type=str, help="client name")
-    parser.add_argument("--delay", default=300, type=int, help="auto cancel delay seconds")
+    parser.add_argument("--delay", default=180, type=int, help="auto cancel delay seconds")
     parser.add_argument("--batch", default=1, type=int, help="batch size")
     args = parser.parse_args()
 
