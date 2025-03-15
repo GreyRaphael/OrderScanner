@@ -78,6 +78,7 @@ class OrderScanner:
                     # "ExpTime": '20221110145700000',
                     "LimAction": 0,
                     "AftAction": 0,
+                    "AlgoParam": "buyside=1:sellside=2",
                 }
                 for i in range(batchSize)
             ]
@@ -171,11 +172,11 @@ class OrderScanner:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="ATX OrderScanner")
-    parser.add_argument("--mondir", default=r"D:\ATX\OrderScan", type=str, help="ATX moniter dir")
+    parser.add_argument("--mondir", default=r"E:\SWAP\atx-client\OrderScan", type=str, help="ATX moniter dir")
     parser.add_argument("--side", required=True, type=int, help="direction: 1 buy, 2 sell")
     parser.add_argument("--opfile", default="input/opfile-buy.csv", type=str, help="operation file")
     parser.add_argument("--ordtype", default=201, type=int, help="order type: 201, direct; 101, kf_twap_plus; 103, kf_vwap_plus")
-    parser.add_argument("--client", default="test1", type=str, help="client name")
+    parser.add_argument("--client", default="shanghaitest1", type=str, help="client name")  # realmoneytest1
     parser.add_argument("--delay", default=180, type=int, help="auto cancel delay seconds")
     parser.add_argument("--batch", default=1, type=int, help="batch size")
     args = parser.parse_args()
