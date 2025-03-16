@@ -176,6 +176,8 @@ if __name__ == "__main__":
     parser.add_argument("--side", required=True, type=int, help="direction: 1 buy, 2 sell")
     parser.add_argument("--opfile", default="input/opfile-buy.csv", type=str, help="operation file")
     parser.add_argument("--ordtype", default=201, type=int, help="order type: 201, direct; 101, kf_twap_plus; 103, kf_vwap_plus")
+    # shanghaitest1 有持仓，需要涛哥开模拟撮合
+    # realmoneytest1 没有持仓，但是可以直接连交易所环境
     parser.add_argument("--client", default="shanghaitest1", type=str, help="client name")  # realmoneytest1
     parser.add_argument("--delay", default=180, type=int, help="auto cancel delay seconds")
     parser.add_argument("--batch", default=1, type=int, help="batch size")
